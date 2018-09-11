@@ -1,20 +1,21 @@
 import cv2, pywinauto, random, screen_cap, time, wow_hijack
 
 
-# Path to WoW
 PATH = "D:\Games\Blizzard\World of Warcraft\Wow.exe"
-# OPTIONS
+FISHING_ENABLED = False
 TRACKBARS = False
+SHOW_VIDEO_FEED = False
 
 def bobber_screen_coords(bobber_location):
-    screen_coords = (bobber_location[0], int(bobber_location[1]+(app_height/5*3)))
+    ''' Returns the bobber x,y screen coordinates in a tuple.
+        Takes into account window x,y offset if not fullscreen.
+            ARGS:       bobber_location (tuple(X,Y))
+            RETURNS:    screen_coords (tuple(X,Y)) '''
+    screen_coords = (bobber_location[0],
+                    int(bobber_location[1]+(app_height/5*3)))
     return screen_coords
 
 def main():
-    ''' To Do
-            - Restart the process
-                + Generate random interval to restart
-                    random.uniform(FLOAT, FLOAT) '''
     wow_running = wow_hijack.check_process()
     print(f'[+] Finding WoW application.')
     if wow_running:
@@ -50,6 +51,8 @@ def main():
             # Retrieve video output and bobber location
             output, bobber_location = \
             screen_cap.generate_window(*adjusted_window)
+            if SHOW_VIDEO_FEED:
+                cv2.imshow('FishingBot', output)
             # If a bobber location is found
             if bobber_location != None:
                 # Add to x if window doesn't start at X=0
@@ -68,7 +71,7 @@ def main():
                     bobber_location[0] - new_cast_threshold:
 
                         # Debug
-                        print('New Cast')
+                        print('[+] New Cast Detected.')
 
                     else:
                         # This is where the code will go to catch the fish
@@ -76,15 +79,17 @@ def main():
                         # restart the fishing process
 
                         # Debug
-                        print('Fish On')
+                        print('[+] Fish On!')
 
                         # Potentially get this on a different thread
                         # Sleep for random amt of time
                         time.sleep(random.uniform(0.8,1.5))
                         # Get screen coords from window coords for mouse click
                         coords = bobber_screen_coords()
-                        # Click at selected coordinates
-                        # pywinauto.mouse.click(button='left', coords=(coords[0], coords[1]))
+                        if FISHING_ENABLED:
+                            # Click at selected coordinates
+                            pywinauto.mouse.click(button='left',
+                                                coords=(coords[0], coords[1]))
 
                         # Debug
                         print(bobber_location, last_bobber_location)
@@ -92,8 +97,6 @@ def main():
 
                 # Update last known bobber location
                 last_bobber_location = bobber_location
-            # Show video feed
-            cv2.imshow('Fisherman', output)
             # Exit key == 'q'
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()

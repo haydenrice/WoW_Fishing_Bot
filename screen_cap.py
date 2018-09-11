@@ -2,6 +2,13 @@ import cv2, imutils, numpy as np, PIL.ImageGrab as ImageGrab
 
 
 def find_bobber(mask, output):
+	''' Finds bobber based on contour detection within video feed.
+		Recommended to use HSV or RGB mask.
+		Returns the center point of the largest contour found.
+			ARGS:		mask (cv2 HSV, RGB, or other filter)
+						output (cv2 video output object)
+			RETURNS:	center (tuple(X,Y)) or None
+	'''
 	center = None
 	# Define contours
 	cnts = cv2.findContours(mask.copy(),
@@ -29,7 +36,7 @@ def find_bobber(mask, output):
 						0.35, (0,255,255), 1)
 	        # Show X,Y of center
 	        cv2.putText(output,
-						(str(f'Center: {center}')),
+						(str(f'Center: {center} Radius: {radius}')),
 						(10, (output.shape[0] - 20)),
 						cv2.FONT_HERSHEY_SIMPLEX,
 						0.35, (0,255,255), 1)
