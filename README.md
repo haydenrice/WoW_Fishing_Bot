@@ -13,6 +13,7 @@
       - Finding the bobber works by filtering out parts of the video feed. The less clutter, the better.
   * Make sure liquid detail is set to 'Low'
       - Filtering works better when set to low as it tends to make the water surface more opaque (less clutter underwater).
+  * Change your key bindings so that fishing is bound to clicking your mouse scroll wheel.
   
 ![WoW Settings](https://github.com/raidensan91/WoW_Fishing_Bot/blob/master/var/Settings.PNG)
 
