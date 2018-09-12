@@ -1,22 +1,23 @@
-import cv2, pywinauto, random, screen_cap, time, wow_hijack
-
+import cv2, fishing_util, pywinauto, random, screen_cap, time, wow_hijack
+from datetime import datetime,timedelta
 
 PATH = "D:\Games\Blizzard\World of Warcraft\Wow.exe"
-FISHING_ENABLED = False
+FISHING_ENABLED = True
 TRACKBARS = False
-SHOW_VIDEO_FEED = False
+SHOW_VIDEO_FEED = True
 
-def bobber_screen_coords(bobber_location):
+def bobber_screen_coords(bobber_location, app_height, app_position):
     ''' Returns the bobber x,y screen coordinates in a tuple.
         Takes into account window x,y offset if not fullscreen.
             ARGS:       bobber_location (tuple(X,Y))
             RETURNS:    screen_coords (tuple(X,Y)) '''
-    screen_coords = (bobber_location[0],
+    screen_coords = (int(bobber_location[0]+ app_position.left),
                     int(bobber_location[1]+(app_height/5*3)))
     return screen_coords
 
 def main():
-    wow_running = wow_hijack.check_process()
+    wow_running = wow_hijack.check_process(
+                        ["World of Warcraft", "WorldOfWarcraft", "Wow.exe"])
     print(f'[+] Finding WoW application.')
     if wow_running:
         try:
@@ -43,58 +44,48 @@ def main():
         screen_cap.setup_trackbars()
     # Arbitrary value
     last_bobber_location = (0,0)
-    # Distance in either x or y greater than this
-    # won't trigger the catching method
-    new_cast_threshold = 30
+    last_cast = datetime.now()
     while(True):
         try:
             # Retrieve video output and bobber location
-            output, bobber_location = \
-            screen_cap.generate_window(*adjusted_window)
+            mask, output = screen_cap.generate_window(*adjusted_window)
+            bobber_location = screen_cap.find_bobber(mask, output)
             if SHOW_VIDEO_FEED:
                 cv2.imshow('FishingBot', output)
             # If a bobber location is found
-            if bobber_location != None:
+            if bobber_location:
                 # Add to x if window doesn't start at X=0
                 bobber_location_x = (bobber_location[0]+app_position.left)
-                # Check for variance in Y coords to see if bobber dips
-                upper_threshold = last_bobber_location[1] + 7
-                lower_threshold = last_bobber_location[1] - 5
-                # Compare Y coordinates
-                if bobber_location[1] > upper_threshold or \
-                bobber_location[1] < lower_threshold:
-                    # If X coord changes more than new_cast_threshold
-                    # no fish on the line yet
-                    if last_bobber_location[0] > \
-                    bobber_location[0] + new_cast_threshold or \
-                    last_bobber_location[0] < \
-                    bobber_location[0] - new_cast_threshold:
-
-                        # Debug
-                        print('[+] New Cast Detected.')
-
-                    else:
+                # If X coord changes more than new_cast_threshold
+                new_cast = fishing_util.check_new_cast(last_cast,
+                                        last_bobber_location, bobber_location)
+                if new_cast:
+                    print('[+] New cast detected.')
+                else:
+                    # Check for variance in Y coords to see if bobber dips
+                    upper_threshold = last_bobber_location[1] + 7
+                    lower_threshold = last_bobber_location[1] - 5
+                    # Compare Y coordinates
+                    if bobber_location[1] > upper_threshold or \
+                    bobber_location[1] < lower_threshold:
                         # This is where the code will go to catch the fish
                         # @ given X,Y coords, and then press the button to
                         # restart the fishing process
-
-                        # Debug
-                        print('[+] Fish On!')
-
-                        # Potentially get this on a different thread
-                        # Sleep for random amt of time
-                        time.sleep(random.uniform(0.8,1.5))
-                        # Get screen coords from window coords for mouse click
-                        coords = bobber_screen_coords()
-                        if FISHING_ENABLED:
-                            # Click at selected coordinates
-                            pywinauto.mouse.click(button='left',
-                                                coords=(coords[0], coords[1]))
-
-                        # Debug
-                        print(bobber_location, last_bobber_location)
-                        fish_on = True
-
+                        if datetime.now() > (last_cast+timedelta(seconds=3)):
+                            # Debug
+                            print('[+] Fish On!')
+                            if FISHING_ENABLED:
+                                # Potentially get this on a different thread
+                                # Sleep for random amt of time
+                                time.sleep(random.uniform(0.8,2.15))
+                                # Get screen coords from window coords for mouse click
+                                coords = bobber_screen_coords(bobber_location,
+                                                        app_height,app_position)
+                                # Click at selected coordinates
+                                fishing_util.click(coords)
+                                # Sleep for random amt of time
+                                time.sleep(random.uniform(1.5, 3.3))
+                                last_cast = fishing_util.cast(coords)
                 # Update last known bobber location
                 last_bobber_location = bobber_location
             # Exit key == 'q'

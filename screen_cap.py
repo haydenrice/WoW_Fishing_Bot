@@ -63,6 +63,12 @@ def detect_edges(image):
 									threshold2=300)
 	return edge_detected_image
 
+def hsv_mask(hsv_image, lower_range, upper_range):
+	# Convert ranges to a numpy array
+	lower_range = np.array(lower_range, dtype="uint8")
+	upper_range = np.array(upper_range, dtype="uint8")
+	return cv2.inRange(hsv_image, lower_range, upper_range)
+
 def update_trackbars():
 	lower_range = [
 	    cv2.getTrackbarPos('Min B', 'Trackbars'),
@@ -77,33 +83,27 @@ def update_trackbars():
 	return lower_range, upper_range
 
 def generate_window(x1, y1, x2, y2):
-    ''' Note to self:
-            craft a window using GUI and set bbox coords to the coords of the
-            window to record whatever the window passes over.'''
-
-    screen = np.array(ImageGrab.grab(bbox=(x1,y1,x2,y2)))
-    grey_screen = greyscale_img(screen)
-    hsv = cv2.cvtColor(screen, cv2.COLOR_BGR2HSV)
-    rgb = cv2.cvtColor(screen, cv2.COLOR_BGR2RGB)
-    # HSV Range that works for bobber for me
-    lower_range = [35,0,0] # H, S, V
-    upper_range = [255,255,255] # H, S, V
-	# Convert ranges to a numpy array
-    lower_range = np.array(lower_range, dtype="uint8")
-    upper_range = np.array(upper_range, dtype="uint8")
-	# Apply HSV mask
-    mask = cv2.inRange(hsv, lower_range, upper_range)
+	''' Generates a recording window at the specified coordinates and applies
+		an HSV mask to the captured video feed.
+			ARGS:		x1,y1,x2,y2 (int)
+	'''
+	screen = np.array(ImageGrab.grab(bbox=(x1,y1,x2,y2)))
+	# HSV Range that works for bobber for me
+	lower_range = [38,0,0] # H, S, V
+	upper_range = [255,255,255] # H, S, V
 	# Apply filter to HSV video feed
-    output = cv2.bitwise_and(hsv, hsv, mask=mask)
-	# Get bobber location from video feed
-    bobber_location = find_bobber(mask, output)
-    return output, bobber_location
+	hsv = cv2.cvtColor(screen, cv2.COLOR_BGR2HSV)
+	mask = hsv_mask(hsv, lower_range, upper_range)
+	output = cv2.bitwise_and(hsv, hsv, mask=mask)
+	return mask, output
 
 def setup_trackbars():
+	# Filler function that runs every time the bar value changes
     def nothing(x):
         pass
 
     cv2.namedWindow('Trackbars', 0)
+	# Create your trackbars here
     cv2.createTrackbar('Min R', 'Trackbars', 0, 255, nothing)
     cv2.createTrackbar('Min G', 'Trackbars', 0, 255, nothing)
     cv2.createTrackbar('Min B', 'Trackbars', 0, 255, nothing)

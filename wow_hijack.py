@@ -2,17 +2,16 @@ import psutil
 from pywinauto.application import Application
 
 
-def check_process():
-    ''' Searches for running World of Warcraft instance within
-        list of currently running processes.
+def check_process(process_names_list):
+    ''' Searches for match in provided list against currently running processes.
+            ARGS:           process_names_list (list)
             RETURNS:        running (Boolean) '''
-    print('[+] Checking for WoW Instance..')
-    wow_process_names = ["World of Warcraft", "WorldOfWarcraft", "Wow.exe"]
+    print('[+] Checking for matching processes..')
     running = False
     # Check for process name match in wow_process_names
     for pid in psutil.pids():
         p = psutil.Process(pid)
-        if any(p.name() in s for s in wow_process_names):
+        if any(p.name() in s for s in process_names_list):
             print(f'Found Instance: {p.name()}')
             running = True
     return running
@@ -24,15 +23,12 @@ def connect_app(path_to_app):
     try:
         # Attach Python to World of Warcraft instance
         app = Application().connect(path=path_to_app)
+        print(f'[+] Connected to application at:\n\t{path_to_app}')
     except (ProcessNotFound, AppNotConnected) as err:
         print(f'[!] Could not establish connection to \
         {path_to_app}:\n\t{err}')
     # If connection is successful, return app object
-    if app:
-        print(f'[+] Connected to application at:\n\t{path_to_app}')
-        return app
-    else:
-        return None
+    return app if app else None
 
 def get_app_pos(app_object):
     ''' Retrieve the app left, top, right, and bottom edge coordinates.
@@ -45,5 +41,5 @@ def press_key(app_object, hotkey):
     ''' Press desired hotkey(s) within an app instance.
             ARGS:       app_object (pywinauto.Application Object)
                         hotkey (string) '''
-    app_object.WorldOfWarcraft.type_keys(str(hotkey))
+    app_object.WorldOfWarcraft.type_keys(hotkey)
     print(f'[+] Key(s) Pressed: "{hotkey}"')
