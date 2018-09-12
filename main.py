@@ -54,8 +54,6 @@ def main():
                 cv2.imshow('FishingBot', output)
             # If a bobber location is found
             if bobber_location:
-                # Add to x if window doesn't start at X=0
-                bobber_location_x = (bobber_location[0]+app_position.left)
                 # If X coord changes more than new_cast_threshold
                 new_cast = fishing_util.check_new_cast(last_cast,
                                         last_bobber_location, bobber_location)
