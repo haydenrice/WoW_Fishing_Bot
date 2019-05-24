@@ -17,26 +17,20 @@ def find_bobber(mask, output):
 	# If a contour is found
 	if len(cnts) > 0:
 	    try:
-			# Find the biggest contour
+		# Find the biggest contour
 	        c = max(cnts, key=cv2.contourArea)
-			# Get the position(x,y) and the radius
+		# Get the position(x,y) and the radius
 	        ((x,y), radius) = cv2.minEnclosingCircle(c)
-			# Contour
+		# Contour
 	        M = cv2.moments(c)
-			# Find the center of the circle
+		# Find the center of the circle
 	        center = (int(M["m10"] / M["m00"]),int(M["m01"] / M["m00"]))
 	        # Show X,Y of circle on video feed
-	        cv2.putText(output,
-					    (str(f'Bobber Pos. (X,Y): ({int(x)},{int(y)})')),
-						(10, (output.shape[0] - 10)),
-						cv2.FONT_HERSHEY_SIMPLEX,
-						0.35, (0,255,255), 1)
+	        cv2.putText(output,(str(f'Bobber Pos. (X,Y): ({int(x)},{int(y)})')),(10, (output.shape[0] - 10)),
+								cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0,255,255), 1)
 	        # Show X,Y of center
-	        cv2.putText(output,
-						(str(f'Center: {center} Radius: {radius}')),
-						(10, (output.shape[0] - 20)),
-						cv2.FONT_HERSHEY_SIMPLEX,
-						0.35, (0,255,255), 1)
+	        cv2.putText(output,(str(f'Center: {center} Radius: {radius}')),(10, (output.shape[0] - 20)),
+								cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0,255,255), 1)
 	        # Draw the circle and center point
 	        cv2.circle(output, (int(x), int(y)), int(radius), (0,255,0), 2)
 	        cv2.circle(output, center, 5, (0,0,255), -1)
