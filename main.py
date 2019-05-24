@@ -1,5 +1,5 @@
 import cv2, fishing_util, pywinauto, random, screen_cap, time, wow_hijack
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
 PATH = "D:\\Games\\Blizzard\\World of Warcraft\\Wow.exe"
 FISHING_ENABLED = False
@@ -17,7 +17,7 @@ def bobber_screen_coords(bobber_location, app_height, app_position):
 
 def main():
     wow_running = wow_hijack.check_process(["World of Warcraft", "WorldOfWarcraft", "Wow.exe"])
-    print(f'[+] Finding WoW application.')
+    print(f'[+] Finding WoW application instance.')
     if wow_running:
         try:
             # Connect to WoW
